@@ -20,7 +20,7 @@ def remap(angle):
     else:
         remap_angle = angle
 
-    return remap_angle
+    return angle #remap_angle
 
 
 def get_rotation(msg):
@@ -61,12 +61,16 @@ while not rospy.is_shutdown():
             sign = -1
         else:
             sign = 1
-
+    # calculate the true error between [0, 180] for the angle to overcome wrap around
+    phi = math.abs(yaw_voice - yaw_current) % 360
+    dist = 360 - phi if phi > 180 else dist = phi
+    print('This is the difference: ', dist)
+    print('Goal_pose:{0} Current_pose:{1}'.format(yaw_voice, yaw_current))
     # add dead zone, to avoid oscillations
-    if (yaw_voice_rad - yaw_current_rad) > 0.02: # can be made with degrees
+    if dist > 2: # can be made with degrees
         command.twist.angular.z = sign*const_vel
         pub.publish(command)
-        print("Goal_pose:{0} Current_pose:{1}".format(yaw_voice, yaw_current))
+        print('Sending ctrl commands now!')
 
 
     r.sleep()
