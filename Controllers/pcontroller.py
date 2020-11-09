@@ -13,18 +13,18 @@ roll_voice = pitch_voice = yaw_voice = 0.0
 kp=0.1
 
 def get_rotation(msg):
-    global roll_current, pitch_current, yaw_current
+    global yaw_current
     orientation_q = msg.pose.pose.orientation
     orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
-    (roll_current, pitch_current, yaw_current) = euler_from_quaternion (orientation_list)
-    #print yaw_current
+    (roll_temp, pitch_temp, yaw_temp) = euler_from_quaternion(orientation_list)
+    yaw_current degrees(yaw_temp)
+
 
 
 def get_direction(msg1):
     global yaw_voice
     yaw_voice = msg1.data
-    #print(yaw_voice.float32)
-    #print yaw_voice
+
 
 rospy.init_node('rotate_robot')
 
@@ -35,13 +35,13 @@ r = rospy.Rate(10)
 command =TwistStamped()
 
 while not rospy.is_shutdown():
-    #quat = quaternion_from_euler (roll, pitch,yaw)
-    #print quat
-    yaw_voice_rad = yaw_voice*math.pi/180
+    print('This is the current orientation: ', yaw_current)
     print('This is the voice_deg: ', yaw_voice)
-    print('This is the voice_rad: ', yaw_voice_rad)
-    if (yaw_voice_rad-yaw_current) > 0.02 :
-        command.twist.angular.z = kp * (yaw_voice_rad-yaw_current)
+    phi = math.abs(yaw_voice - yaw_current) % 360
+    dist = 360 - phi if phi > 180 else dist = phi
+    print('This is the minimum error to the desired pose: ', dist)
+    if dist > 2: # current deadzone is 2 degrees.
+        command.twist.angular.z = kp * dist
         pub.publish(command)
         print("Goal_pose:{0} Current_pose:{1}".format(yaw_voice_rad, yaw_current))
 
