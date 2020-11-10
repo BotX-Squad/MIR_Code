@@ -34,7 +34,7 @@ def get_rotation(msg):
 
 def get_direction(msg1):
     global yaw_voice
-    yaw_voice = remap(msg1.data)
+    yaw_voice = remap(msg1.data)+yaw_current
 
 
 # Start up program
