@@ -14,3 +14,8 @@ To export the ROS master:
 export ROS_MASTER_URI=http://192.168.12.20:11311
 export ROS_IP=192.168.12.246 # find with ifconfig
 ```
+
+To revert back to defaults:
+```
+export ROS_MASTER_URL=http://localhost:11311
+```
