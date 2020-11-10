@@ -14,7 +14,6 @@ const_vel = 0.2
 kp=0.1
 
 def remap(angle):
-
     if angle < 0:
         remap_angle = abs(angle+180) + 180
     else:
