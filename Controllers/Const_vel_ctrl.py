@@ -10,7 +10,6 @@ import math
 yaw_current = 0.0
 roll_voice = pitch_voice = yaw_voice = 0.0
 const_vel = 0.2
-
 kp=0.1
 
 def remap(angle):
@@ -18,7 +17,6 @@ def remap(angle):
         remap_angle = abs(angle+180) + 180
     else:
         remap_angle = angle
-
     return remap_angle #remap_angle
 
 
@@ -38,7 +36,7 @@ def get_direction(msg1):
 
 # Start up program
 rospy.init_node('Voice_ctrl')
-sub = rospy.Subscriber('/odom', Odometry, get_rotation)
+sub = rospy.Subscriber('/robot_pose', Pose, get_rotation)
 sub1 = rospy.Subscriber('/mir_direction', Int32, get_direction)
 pub = rospy.Publisher('cmd_vel', TwistStamped, queue_size = 1)
 r = rospy.Rate(10)
