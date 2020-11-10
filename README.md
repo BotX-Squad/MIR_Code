@@ -9,3 +9,8 @@ Some of the desired capabilities are listed below:
 - Goal publishing to the REST API interface of the MiR robot. 
 - Application interface for working with cloud computing and natural language processing using AAU developed Max(botX) and CLAAUDIA.
 
+To export the ROS master:
+```
+export ROS_MASTER_URI=http://192.168.12.20:11311
+export ROS_IP=192.168.12.246 # find with ifconfig
+```
