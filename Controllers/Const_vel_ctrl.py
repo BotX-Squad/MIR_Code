@@ -17,12 +17,11 @@ def remap(angle):
         remap_angle = abs(angle+180) + 180
     else:
         remap_angle = angle
-    return remap_angle #remap_angle
-
+    return angle 
 
 def get_rotation(msg):
     global yaw_current
-    orientation_q = msg.pose.pose.orientation
+    orientation_q = msg.orientation
     orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
     (roll_temp, pitch_temp, yaw_temp) = euler_from_quaternion (orientation_list)
     yaw_current = remap(math.degrees(yaw_temp))
@@ -31,13 +30,13 @@ def get_rotation(msg):
 
 def get_direction(msg1):
     global yaw_voice
-    yaw_voice = remap(msg1.data)+yaw_current
+    yaw_voice = -1*remap(msg1.data)+yaw_current
 
 
 # Start up program
 rospy.init_node('Voice_ctrl')
 sub = rospy.Subscriber('/robot_pose', Pose, get_rotation)
-sub1 = rospy.Subscriber('/mir_direction', Int32, get_direction)
+sub1 = rospy.Subscriber('/sound_direction', Int32, get_direction)
 pub = rospy.Publisher('cmd_vel', TwistStamped, queue_size = 1)
 r = rospy.Rate(10)
 command = TwistStamped()
