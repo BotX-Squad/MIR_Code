@@ -1,5 +1,6 @@
 import rospy
 import numpy as np
+import message_filters
 from geometry_msgs.msg import Pose
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32, Int32
@@ -7,17 +8,18 @@ from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from geometry_msgs.msg import TwistStamped
 import math
 
-yaw_current = 0.0
+yaw_current = -180.0
 roll_voice = pitch_voice = yaw_voice = 0.0
-const_vel = 0.2
+const_vel = 0.3
+const_vel_slow = 0.2
+const_vel_slowest = 0.1
 kp=0.1
 
 def remap(angle):
-    if angle < 0:
-        remap_angle = abs(angle+180) + 180
-    else:
-        remap_angle = angle
-    return remap_angle #remap_angle
+    print('This is the angle: ', angle)
+    if angle < -180:
+        angle = angle + 360
+    return angle
 
 
 def get_rotation(msg):
@@ -25,13 +27,13 @@ def get_rotation(msg):
     orientation_q = msg.pose.pose.orientation
     orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
     (roll_temp, pitch_temp, yaw_temp) = euler_from_quaternion (orientation_list)
-    yaw_current = remap(math.degrees(yaw_temp))
-    print('Current angle in degrees: ', yaw_current)
+    yaw_current = math.degrees(yaw_temp)
+    #print('Current angle in degrees: ', yaw_current)
 
 
 def get_direction(msg1):
     global yaw_voice
-    yaw_voice = remap(msg1.data)+yaw_current
+    yaw_voice = remap(-1*msg1.data + yaw_current)
 
 
 # Start up program
@@ -43,9 +45,6 @@ r = rospy.Rate(10)
 command = TwistStamped()
 
 while not rospy.is_shutdown():
-
-    yaw_voice_rad = math.radians(yaw_voice) # yaw_voice * math.pi/180
-    yaw_current_rad = math.radians(yaw_current) # yaw_current * math.pi/180
 
     # find the shortest turning direction
     if yaw_current < yaw_voice:
@@ -64,10 +63,19 @@ while not rospy.is_shutdown():
     print('This is the difference: ', dist)
     print('Goal_pose:{0} Current_pose:{1}'.format(yaw_voice, yaw_current))
     # add dead zone, to avoid oscillations
-    if dist > 5: # can be made with degrees
-        command.twist.angular.z = sign*const_vel
-        pub.publish(command)
-        print('Sending ctrl commands now!')
+    if dist < 20:
+        if dist < 10: # can be made with degrees
+            command.twist.angular.z = sign*const_vel_slowest
+            pub.publish(command)
+            print('Sending very slow ctrl commands now!')
+        else:
+            command.twist.angular.z = sign*const_vel_slow
+            pub.publish(command)
+            print('Sending slow ctrl commands now!')
+    else:
+            command.twist.angular.z = sign*const_vel
+            pub.publish(command)
+            print('Sending normal ctrl commands now!')
 
 
     r.sleep()
