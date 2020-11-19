@@ -24,7 +24,7 @@ def remap(angle):
 
 def get_rotation(msg):
     global yaw_current
-    orientation_q = msg.pose.pose.orientation
+    orientation_q = msg.orientation
     orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
     (roll_temp, pitch_temp, yaw_temp) = euler_from_quaternion (orientation_list)
     yaw_current = math.degrees(yaw_temp)
