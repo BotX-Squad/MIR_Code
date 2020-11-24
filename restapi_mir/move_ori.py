@@ -2,7 +2,7 @@ import mir
 import time
 import rospy
 from std_msgs.msg import Int32, String
-
+import numpy as np
 
 def init_mission(cls_mir):
 
@@ -27,11 +27,27 @@ def ori_mission(cls_mir, angle):
     return mission_id
 
 def get_dist(angle):
-    position = cls_mir.get_current_position()
-    current_angle = position[2]
+    got_position = False
+    while not got_position:
+        try:
+            position = cls_mir.get_current_position()
+            current_angle = position[2]
+            got_position = True
+        except KeyError:
+            pass
+
     phi = abs(angle - current_angle) % 360
     dist = 360 - phi if phi > 180 else phi
     return dist
+
+def remap(angle):
+    print('This is the angle: ', angle)
+    if angle < -180:
+        angle = angle + 360
+    elif angle > 180:
+        angle = angle - 180
+
+    return angle
 
 if __name__=='__main__':
     angle = 0
@@ -41,17 +57,18 @@ if __name__=='__main__':
     pub = rospy.Publisher('/mir_status', String, queue_size=1)
     #mission_id, position_id = init_mission(cls_mir)
 
+    pub.publish('done')
+
     while not rospy.is_shutdown():
+        pub.publish('done')
         angle_data = rospy.wait_for_message('/mir_direction', Int32)
-        angle = angle_data.data
-        print('This is the angle: ', angle)
-        mission_id = ori_mission(cls_mir, int(angle))
         current_angle = cls_mir.get_current_position()[2]
-        phi = abs(angle - current_angle) % 360
-        dist = 360 - phi if phi > 180 else phi
+        angle = remap(-1*angle_data.data + current_angle)
+        print('This is the angle: ', angle)
+        mission_id = ori_mission(cls_mir, np.around(angle))
         response = cls_mir.post_to_mission_queue(mission_id)
         pub.publish('moving')
-        while get_dist(angle) > 2:
+        while get_dist(angle) > 1:
             pass
 
         print('goal reached')
