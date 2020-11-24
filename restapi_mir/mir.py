@@ -178,14 +178,14 @@ class MiR():
     def get_details_mission_actions(self, guid):
         actions = self.get_actions_of_mission(guid)
         len_actions = len(actions)
-        text = f"There are total {len_actions} actions founded."
+        #text = f"There are total {len_actions} actions founded."
         i = 1
         for item in actions:
             guid = item['parameters'][0]['value']
             result = self.get_specific_position(guid)
-            text = text + f'The {i} action type is ' + item['action_type'] + "." + f'The position name is ' + str(result['name']) + "."
+            #text = text + f'The {i} action type is ' + item['action_type'] + "." + f'The position name is ' + str(result['name']) + "."
             i = i + 1
-
+            text = 'text'
         return text
 
 
@@ -313,8 +313,8 @@ class MiR():
         response = requests.post(self.host + "mission_queue", headers=self.headers, json=data)
         return response.json()
 
+
 #
-# #
 #mir = MiR()
 #mission_name = 'Martin'
 #position_name = 'test'
