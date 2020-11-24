@@ -216,8 +216,18 @@ class MiR():
 
 
     def get_current_position(self):
-        sys_info = self.get_system_info()
-        origin = (sys_info['position']['x'], sys_info['position']['y'], sys_info['position']['orientation'])
+        sys_info = None
+        try:
+            sys_info = self.get_system_info()
+            origin = (sys_info['position']['x'], sys_info['position']['y'], sys_info['position']['orientation'])
+
+        except KeyError:
+            print('The dictionary has not been received. Here is the message sys_info: ', sys_info)
+
+            while sys_info.has_key('error_code'): # if-in can be used if python3 is being used so "if key in dict: (true)" "else: (false)"
+                print('Retrying to get information!', 'Time: ', time.time())
+                sys_info = self.get_system_info()
+                origin = (sys_info['position']['x'], sys_info['position']['y'], sys_info['position']['orientation'])
 
         return origin
 
