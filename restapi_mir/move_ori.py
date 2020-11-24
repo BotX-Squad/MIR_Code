@@ -27,19 +27,24 @@ def ori_mission(cls_mir, angle):
     response = cls_mir.set_position(position_id, x, y, angle)
     return mission_id
 
+def get_angle(default=0):
+    position = cls_mir.get_current_position()
+    if position is not None:
+        return position[2]
+    else:
+        return default
+
 def get_dist(angle):
     got_position = False
-    while not got_position:
-        try:
-            position = cls_mir.get_current_position()
-            current_angle = position[2]
-            got_position = True
-        except KeyError:
-            pass
 
-    phi = abs(angle - current_angle) % 360
-    dist = 360 - phi if phi > 180 else phi
-    return dist
+    current_angle = get_angle(default=None)
+    if current_angle is not None:
+        got_position = True
+
+        phi = abs(angle - current_angle) % 360
+        dist = 360 - phi if phi > 180 else phi
+        return dist
+    else: return 0
 
 def remap(angle):
     print('This is the angle: ', angle)
@@ -63,14 +68,17 @@ if __name__=='__main__':
     while not rospy.is_shutdown():
         pub.publish('done')
         angle_data = rospy.wait_for_message('/mir_direction', Int32)
-        current_angle = cls_mir.get_current_position()[2]
-        angle = remap(-1*angle_data.data + current_angle)
-        print('This is the angle: ', angle)
-        mission_id = ori_mission(cls_mir, np.around(angle))
-        response = cls_mir.post_to_mission_queue(mission_id)
-        pub.publish('moving')
-        while get_dist(angle) > 1:
-            pass
+        current_angle = get_angle(default = None)
+        if current_angle is not None:
+            angle = remap(-1*angle_data.data + current_angle)
+            print('This is the angle: ', angle)
+            mission_id = ori_mission(cls_mir, np.around(angle))
+            response = cls_mir.post_to_mission_queue(mission_id)
+            pub.publish('moving')
+            tries = 0
+            while get_dist(angle) > 3 and tries < 10:
+                tries+=1
+                rospy.sleep(0.3)
 
-        print('goal reached')
-        pub.publish('done')
+            print('goal reached')
+            pub.publish('done')
