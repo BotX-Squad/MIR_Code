@@ -174,6 +174,21 @@ class MiR():
                 break
 
         return mission['guid']
+    # Added a function for deleting missions by name
+    def delete_mission(self, name):
+        missions = self.get_all_missions()
+        result = None
+
+        for item in missions:
+            if item['name'] == name:
+                guid = item['guid']
+                result = requests.delete(self.host + 'missions/' + guid, headers=self.headers)
+                break
+
+        if result == None:
+            result = 'No mission named {0}'.format(name)
+
+        return result
 
     def get_details_mission_actions(self, guid):
         actions = self.get_actions_of_mission(guid)
@@ -322,64 +337,3 @@ class MiR():
         # Send mission to mir
         response = requests.post(self.host + "mission_queue", headers=self.headers, json=data)
         return response.json()
-
-
-#
-#mir = MiR()
-#mission_name = 'Martin'
-#position_name = 'test'
-#action_type = 'move'
-
-#mission_id = mir.get_mission_guid(mission_name)
-#result = mir.create_action(mission_id, position_name, action_type)
-
-#result_mission = mir.get_all_missions()
-#result_position = mir.get_all_position()
-
-#result = mir.get_actions_of_mission('68aa7046-2b0e-11eb-a2b5-0001299f04e5',)
-#mission_id = 'c32fd44e-2b15-11eb-a2b5-0001299f04e5'
-#position_id = 'f547590c-2b0a-11eb-a2b5-0001299f04e5'
-#f547590c-2b0a-11eb-a2b5-0001299f04e5
-
-
-#create_action(self, mission_id, position_name, action_type ='move')
-
-#result = mir.post_action_to_mission(mission_id,position_id,action_type)
-#print(result)
-#result = mir.post_action_to_mission('c32fd44e-2b15-11eb-a2b5-0001299f04e5','8cde4f7e-2b11-11eb-a2b5-0001299f04e5', 'move')
-#result = mir.get_all_position()
-#[{'action_type': 'move', 'guid': '8cde4f7e-2b11-11eb-a2b5-0001299f04e5', 'mission_id': '68aa7046-2b0e-11eb-a2b5-0001299f04e5', 'parameters': [{'guid': '8cdf2e91-2b11-11eb-a2b5-0001299f04e5', 'id': 'position', 'input_name': None, 'value': 'f547590c-2b0a-11eb-a2b5-0001299f04e5'}, {'guid': '8cdf51de-2b11-11eb-a2b5-0001299f04e5', 'id': 'cart_entry_position', 'input_name': None, 'value': 'main'}, {'guid': '8cdf71b4-2b11-11eb-a2b5-0001299f04e5', 'id': 'main_or_entry_position', 'input_name': None, 'value': 'main'}, {'guid': '8cdf9040-2b11-11eb-a2b5-0001299f04e5', 'id': 'marker_entry_position', 'input_name': None, 'value': 'entry'}, {'guid': '8cdfb602-2b11-11eb-a2b5-0001299f04e5', 'id': 'retries', 'input_name': None, 'value': 10}, {'guid': '8cdfd644-2b11-11eb-a2b5-0001299f04e5', 'id': 'distance_threshold', 'input_name': None, 'value': 0.1}], 'priority': 1, 'url': '/v2.0.0/mission_actions/8cde4f7e-2b11-11eb-a2b5-0001299f04e5'}]
-
-
-#[{'action_type': 'load_mission', 'guid': '214abb79-2b11-11eb-a2b5-0001299f04e5', 'mission_id': '68aa7046-2b0e-11eb-a2b5-0001299f04e5', 'parameters': [{'guid': '214b514e-2b11-11eb-a2b5-0001299f04e5', 'id': 'mission_id', 'input_name': None, 'value': '7660b413-e5e0-11ea-a834-0001299f04e5'}], 'priority': 1, 'url': '/v2.0.0/mission_actions/214abb79-2b11-11eb-a2b5-0001299f04e5'}]
-
-
-#miss_id = mir.create_mission('martin')
-#print(miss_id)
-
-#print(mir.create_action(miss_id,'test'))
-#print(mir.get_all_position())
-
-#
-#result = mir.get_system_info()
-#print(result)
-# # state_id = 11
-# joystick_web_session_id = "vg5kk8rer9sab3bnlkllvqo5b3"
-#
-# velocity = {'angular': -0.8470000624656677, 'linear': 0.11378716677427292}
-#
-# mir.put_state_to_pause()
-
-# while True:
-#     print("11")
-#     mir.move_mir(velocity)
-
-
-
-# mir.chang_manual(state_id)
-#
-# result = mir.get_system_info()
-# print(result)
-#
-# # mir.put_state_to_pause()
-# # print(mir.get_system_info())
