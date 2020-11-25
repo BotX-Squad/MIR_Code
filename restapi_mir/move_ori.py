@@ -3,21 +3,22 @@ import time
 import rospy
 from std_msgs.msg import Int32, String
 import numpy as np
+import sys
 
-def init_mission(cls_mir):
+def init_mission(cls_mir, mission_name, position_name):
 
-    mission_id = cls_mir.create_mission('Orientation_test')
-    cls_mir.post_position('martin_test')
-    result, position_id = cls_mir.create_action(mission_id, 'martin_test', action_type='move')
+    mission_id = cls_mir.create_mission(mission_name)
+    cls_mir.post_position(position_name) # post position at the current location of the robot
+    result, position_id = cls_mir.create_action(mission_id, position_name, action_type='move')
 
     return mission_id, position_id
 
 
-def ori_mission(cls_mir, angle):
+def ori_mission(cls_mir, angle, mission_name, position_name):
 
     # Find the ids for the mission and used position
-    mission_id = cls_mir.get_mission_guid('Orientation_test')
-    position_id = cls_mir.get_position_guid('martin_test')
+    mission_id = cls_mir.get_mission_guid(mission_name)
+    position_id = cls_mir.get_position_guid(position_name)
 
     # Get the current position (postion_id could also be used)
     current_pos = cls_mir.get_current_position()
@@ -51,34 +52,44 @@ def remap(angle):
     if angle < -180:
         angle = angle + 360
     elif angle > 180:
-        angle = angle - 180
-
+        angle = angle - 360
     return angle
 
 if __name__=='__main__':
-    angle = 0
-    cls_mir = mir.MiR()
-    cls_mir.put_state_to_execute()
-    rospy.init_node('rest_api_node')
-    pub = rospy.Publisher('/mir_status', String, queue_size=1)
-    #mission_id, position_id = init_mission(cls_mir)
+    try:
+        cls_mir = mir.MiR()
+        mission_name = 'Orientation_test'
+        position_name = 'Demo_Office'
 
-    pub.publish('done')
+        if sys.argv[1] == 'init':
+            print('Running the initialization...')
+            response = cls_mir.delete_mission(mission_name) # Delete old mission to avoid multiple missions with the same name.
+            mission_id, position_id = init_mission(cls_mir, mission_name, position_name)
 
-    while not rospy.is_shutdown():
-        pub.publish('done')
-        angle_data = rospy.wait_for_message('/mir_direction', Int32)
-        current_angle = get_angle(default = None)
-        if current_angle is not None:
-            angle = remap(-1*angle_data.data + current_angle)
-            print('This is the angle: ', angle)
-            mission_id = ori_mission(cls_mir, np.around(angle))
-            response = cls_mir.post_to_mission_queue(mission_id)
-            pub.publish('moving')
-            tries = 0
-            while get_dist(angle) > 3 and tries < 10:
-                tries+=1
-                rospy.sleep(0.3)
+        elif sys.argv[1] == 'run':
+            print('Running the main script...')
+            angle = 0
+            cls_mir.put_state_to_execute()
+            rospy.init_node('rest_api_node')
+            pub = rospy.Publisher('/mir_status', String, queue_size=1)
 
-            print('goal reached')
-            pub.publish('done')
+
+            while not rospy.is_shutdown():
+                pub.publish('done')
+                angle_data = rospy.wait_for_message('/mir_direction', Int32)
+                print(angle_data.data)
+                current_angle = get_angle(default = None)
+                if current_angle is not None:
+                    angle = remap(-1*angle_data.data + current_angle)
+                    mission_id = ori_mission(cls_mir, angle, mission_name, position_name)
+                    response = cls_mir.post_to_mission_queue(mission_id)
+                    pub.publish('moving')
+                    tries = 0
+                    while get_dist(angle) > 2 and tries < 10:
+                        tries+=1
+                        rospy.sleep(0.3)
+
+                    print('goal reached')
+                    pub.publish('done')
+    except:
+        print('Please input either "init" or "run"!')
