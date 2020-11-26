@@ -83,6 +83,7 @@ class MiR():
             if item['name'] == name:
                 guid = item['guid']
                 break
+
         return guid
 
     # post a new mission
@@ -122,11 +123,10 @@ class MiR():
                       "map_id": map_id}
         post_position = requests.post(self.host + 'positions', json=parameters, headers=self.headers)
 
-
-
     def post_to_mission_queue(self, mission_id):
         mission_id = {"mission_id": mission_id}
         post_mission = requests.post(self.host + 'mission_queue', json=mission_id, headers=self.headers)
+
         return post_mission
 
     def get_mission_queue(self):
@@ -167,18 +167,17 @@ class MiR():
     # get the details of a mission
     def get_mission_guid(self, name):
         missions = self.get_all_missions()
-
         for item in missions:
             if item['name'] == name:
                 mission = self.get_specific_mission(item['guid'])
                 break
 
         return mission['guid']
-    # Added a function for deleting missions by name
+
+    # function for deleting missions by name
     def delete_mission(self, name):
         missions = self.get_all_missions()
         result = None
-
         for item in missions:
             if item['name'] == name:
                 guid = item['guid']
@@ -190,46 +189,58 @@ class MiR():
 
         return result
 
+    # function for deleting positions by name
+    def delete_position(self, name):
+        positions = self.get_all_position()
+        result = None
+        for item in positions:
+            if item['name'] == name:
+                guid = item['guid']
+                result = requests.delete(self.host + 'positions/' + guid, headers=self.headers)
+                break
+        if result == None:
+            result = 'No position named {0}'.format(name)
+
+        return result
+
+    # get details of a specific mission's actions
     def get_details_mission_actions(self, guid):
         actions = self.get_actions_of_mission(guid)
         len_actions = len(actions)
-        #text = f"There are total {len_actions} actions founded."
         i = 1
         for item in actions:
             guid = item['parameters'][0]['value']
             result = self.get_specific_position(guid)
-            #text = text + f'The {i} action type is ' + item['action_type'] + "." + f'The position name is ' + str(result['name']) + "."
             i = i + 1
             text = 'text'
+
         return text
 
-
+    # create a mission with a certain name and return it's guid
     def create_mission(self, name):
-        # create a mission with the given name
         result = self.post_mission(name)
-        # return a mission id for create actions
         mission_id = result['guid']
 
         return mission_id
 
+    # create an action in a specific mission with a default action_type move
     def create_action(self, mission_id, position_name, action_type='move'):
-        # get position guid
         all_position = self.get_all_position()
         for item in all_position:
             if item['name'] == position_name:
                 guid = item['guid']
                 break
-
         # create an action with the specific type
         result = self.post_action_to_mission(mission_id, guid, action_type)
 
         return result, guid
 
+    # calculate distance in meters between two points
     def cal_distance(self, origin, dist):
 
         return geodesic(origin, dist).meters
 
-
+    # get the current position of the robot if accessible otherwise return None
     def get_current_position(self):
         sys_info = None
         tries = 0
@@ -245,7 +256,7 @@ class MiR():
 
         return None
 
-
+    # get the position defined on the map with the shortest eucledian distance to the robot
     def get_nearest_position(self):
         origin = self.get_current_position()
         all_positions = self.get_all_position()
@@ -262,6 +273,7 @@ class MiR():
 
         return (best_distance, cloest_location)
 
+    # check if the destination has been reached by comparing current position to a specific position
     def check_reach_des(self):
         origin = self.get_current_position()
         all_positions = self.get_all_position()
@@ -285,7 +297,7 @@ class MiR():
 
         return best_distance, cloest_location
 
-
+    # get details of the mission that is currently being executed
     def get_exe_mission(self):
         exe_mission = self.get_mission_queue()
         mission_name = 'None'
@@ -297,7 +309,7 @@ class MiR():
 
         return mission_name
 
-
+    # Check if there are pending missions in the queue
     def get_pending_mission(self):
         mission_queue = self.get_mission_queue()
         for item in mission_queue:
@@ -306,6 +318,7 @@ class MiR():
 
         return False
 
+    # Check if a mission is done or not
     def get_mission_done_or_not(self, id):
         exe_mission = self.get_mission_queue()
         for item in exe_mission:
@@ -314,26 +327,25 @@ class MiR():
 
         return False
 
+    # move the mir robot with joystick using continuos velocity messages
     def move_mir(self, state_id, velocity, joystick_web_session_id):
         parameters = {"velocity":velocity}
         requests.put(self.host + 'status', json=parameters, headers=self.headers)
-
 
     # added so the position of the MiR can be changed
     def set_position(self, guid, x, y , orientation):
         parameters = {"pos_x": x, "pos_y": y, "orientation": orientation}
         response = requests.put(self.host + "positions/"+guid, json=parameters, headers=self.headers)
-        return response.json()
 
+        return response.json()
+    # change the state of the robot manually from (1 to 5)
     def chang_manual(self, state_id):
         parameters = {"state_id": state_id}
         requests.put(self.host + 'status', json=parameters, headers=self.headers)
 
-
+    # Send mission to mir
     def set_mission(self, GUID):
         data = {"mission_id": GUID}
-        # write to log
-        print("mir send on mission: " + GUID)
-        # Send mission to mir
         response = requests.post(self.host + "mission_queue", headers=self.headers, json=data)
+
         return response.json()

@@ -64,11 +64,13 @@ if __name__=='__main__':
         if sys.argv[1] == 'init':
             print('Running the initialization...')
             response = cls_mir.delete_mission(mission_name) # Delete old mission to avoid multiple missions with the same name.
+            print('Delete mission response from the robot: ', response)
+            response = cls_mir.delete_position(position_name) # Delete old mission to avoid multiple missions with the same name.
+            print('Delete position response from the robot: ', response)
             mission_id, position_id = init_mission(cls_mir, mission_name, position_name)
 
         elif sys.argv[1] == 'run':
             print('Running the main script...')
-            angle = 0
             cls_mir.put_state_to_execute()
             rospy.init_node('rest_api_node')
             pub = rospy.Publisher('/mir_status', String, queue_size=1)
@@ -77,7 +79,7 @@ if __name__=='__main__':
             while not rospy.is_shutdown():
                 pub.publish('done')
                 angle_data = rospy.wait_for_message('/mir_direction', Int32)
-                print(angle_data.data)
+                print('This is the incoming angle: ', angle_data.data)
                 current_angle = get_angle(default = None)
                 if current_angle is not None:
                     angle = remap(-1*angle_data.data + current_angle)
