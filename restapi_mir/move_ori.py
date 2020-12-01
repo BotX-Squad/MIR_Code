@@ -6,26 +6,23 @@ import numpy as np
 import sys
 
 def init_mission(cls_mir, mission_name, position_name):
-
     mission_id = cls_mir.create_mission(mission_name)
     cls_mir.post_position(position_name) # post position at the current location of the robot
     result, position_id = cls_mir.create_action(mission_id, position_name, action_type='move')
 
     return mission_id, position_id
 
-
 def ori_mission(cls_mir, angle, mission_name, position_name):
-
     # Find the ids for the mission and used position
     mission_id = cls_mir.get_mission_guid(mission_name)
     position_id = cls_mir.get_position_guid(position_name)
-
     # Get the current position (postion_id could also be used)
     current_pos = cls_mir.get_current_position()
     x = cls_mir.get_specific_position(position_id)['pos_x']
     y = cls_mir.get_specific_position(position_id)['pos_y']
     # Modify the function position with the new incoming angle
     response = cls_mir.set_position(position_id, x, y, angle)
+
     return mission_id
 
 def get_angle(default=0):
@@ -33,19 +30,20 @@ def get_angle(default=0):
     if position is not None:
         return position[2]
     else:
+
         return default
 
 def get_dist(angle):
     got_position = False
-
     current_angle = get_angle(default=None)
     if current_angle is not None:
         got_position = True
-
         phi = abs(angle - current_angle) % 360
         dist = 360 - phi if phi > 180 else phi
         return dist
-    else: return 0
+    else:
+
+        return 0
 
 def remap(angle):
     print('This is the angle: ', angle)
@@ -53,6 +51,7 @@ def remap(angle):
         angle = angle + 360
     elif angle > 180:
         angle = angle - 360
+
     return angle
 
 if __name__=='__main__':
@@ -74,7 +73,6 @@ if __name__=='__main__':
             cls_mir.put_state_to_execute()
             rospy.init_node('rest_api_node')
             pub = rospy.Publisher('/mir_status', String, queue_size=1)
-
 
             while not rospy.is_shutdown():
                 pub.publish('done')

@@ -3,7 +3,7 @@ import time
 import sys
 
 cls_mir = mir.MiR()
-
+'''
 def remap(angle):
     if angle < -180:
         angle = angle + 360
@@ -15,11 +15,12 @@ for x in range(-360, 360):
     angle = remap(x)
     print('This is x: {0} and this is angle: {1}'.format(x, angle))
 
-
-
-
-
-
+result = cls_mir.get_system_info()
+print(result)
+'''
+position_name = 'Demo_Office'
+response = cls_mir.delete_position(position_name) # Delete old mission to avoid multiple missions with the same name.
+print('Delete position response from the robot: ', response)
 
 '''
 try:
